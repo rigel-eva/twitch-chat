@@ -143,7 +143,7 @@ module Twitch
               when :ping
                 trigger(:ping)
               when :message
-                trigger(:message, message.user, message.message) if message.target == @channel.name
+                trigger(:message, message.user, message) if message.target == @channel.name
               when :mode
                 trigger(:mode, *message.params.last(2))
 

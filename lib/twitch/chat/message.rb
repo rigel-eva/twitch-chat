@@ -79,7 +79,9 @@ module Twitch
       def regular_command?
         !numeric_reply?
       end
-
+      def to_s
+        return @message
+      end
       def parse_type
         case @command
           when 'PRIVMSG'
