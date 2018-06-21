@@ -134,13 +134,11 @@ module Twitch
       end
 
       def receive_data(data)
-        @logger.debug("Data Recieved: \n#{data}")
+        #@logger.debug("Data Recieved: \n#{data}")
         data.split(/\r?\n/).each do |message|
           @logger.debug(message)
-
           Message.new(message).tap do |message|
             trigger(:raw, message)
-
             case message.type
               when :ping
                 trigger(:ping)
@@ -166,7 +164,7 @@ module Twitch
       end
 
       def send_data(message)
-        @logger.debug("Data Sent: \n#{message}")
+        #@logger.debug("Data Sent: \n#{message}")
         return false unless connected?
 
         message = message + "\n"
@@ -180,7 +178,9 @@ module Twitch
 
         nil
       end
-
+      def log(dataToLog)
+        @logger.debug(dataToLog)
+      end
       def authenticate
         send_data "PASS #{password}"
         send_data "NICK #{nickname}"

@@ -1,12 +1,18 @@
 module Twitch
   module Chat
     class Message
-      attr_reader :type, :message, :user, :params, :command, :raw, :prefix, :error, :channel, :target
-
+      attr_reader :type, :message, :user, :params, :command, :raw, :prefix, :error, :channel, :target, :userParams
+      
       def initialize(msg)
         @raw = msg
-
-        @prefix, @command, raw_params = msg.match(/(^:(\S+) )?(\S+)(.*)/).captures.last(3)
+        @userParams={}
+        uUserParams,@prefix,@command,raw_params=msg.match(/(?:^)(?:@(\S+) )?(?::(\S+) )?(\S+)(.*)/).captures.last(4)
+        if(!uUserParams.nil?)
+          uUserParams.split(";").each{|param|
+            key,value=param.split("=")
+            @userParams[key]=value
+          }
+        end
         @params = parse_params(raw_params)
         @user = parse_user
         @channel = parse_channel
@@ -77,27 +83,20 @@ module Twitch
       def parse_type
         case @command
           when 'PRIVMSG'
-            if @user == 'jtv'
-              case @message
-                when /This room is now in slow mode/ then :slow_mode
-                when /This room is now in subscribers-only mode/ then :subscribers_mode
-                when /This room is now in r9k mode/ then :r9k_mode
-                when /This room is no longer in slow mode/ then :slow_mode_off
-                when /This room is no longer in r9k mode/ then :r9k_mode_off
-                when /This room is no longer in subscribers-only mode/ then :subscribers_mode_off
-              end
-            elsif @user == 'twitchnotify'
-              if message =~ /just subscribed!/
-                :subscribe
-              end
-            else
-              :message
-            end
+            :message
           when 'MODE' then :mode
           when 'PING' then :ping
           when 'NOTICE'
             if @params.last == 'Login unsuccessful'
               :login_unsuccessful
+            end
+            case @userParams["msg_id"]
+              when /slow_on/ then :slow_mode
+              when /slow_off/ then :slow_mode_off
+              when /r9k_on/ then :r9k_mode
+              when /r9k_off/ then :r9k_mode_off
+              when /emote_only_on/ then :emote_only_mode
+              when /emote_only_off/ then :emote_only_mode_off
             end
           else :not_supported
         end
