@@ -11,7 +11,7 @@ module Twitch
       def initialize(options = {}, &blk)
         options.symbolize_keys!
         options = {
-          host: 'irc.twitch.tv',
+          host: 'irc.chat.twitch.tv',
           port: '6667',
           output: STDOUT
         }.merge!(options)
@@ -20,9 +20,14 @@ module Twitch
 
         @host = options[:host]
         @port = options[:port]
-        @nickname = options[:nickname]
+        @username = options[:username]
+        if options[:nickname].nil?
+          @nickname = options[:username]
+        else
+          @nickname = options[:nickname]
+        end
         @password = options[:password]
-        @channel = Twitch::Chat::Channel.new(options[:channel]) if options[:channel]
+        @channel = Channel.new(options[:channel]) if options[:channel]
 
         @messages_queue = []
 
@@ -131,7 +136,7 @@ module Twitch
         data.split(/\r?\n/).each do |message|
           @logger.debug(message)
 
-          Twitch::Chat::Message.new(message).tap do |message|
+          Message.new(message).tap do |message|
             trigger(:raw, message)
 
             case message.type
@@ -174,9 +179,10 @@ module Twitch
       end
 
       def authenticate
+        send_data "CAP REQ :twitch.tv/tags twitch.tv/commands twitch.tv/membership"
         send_data "PASS #{password}"
         send_data "NICK #{nickname}"
-        send_data "TWITCHCLIENT 3"
+        send_data "USER #{username} 8* :#{username}"
       end
     end
   end
