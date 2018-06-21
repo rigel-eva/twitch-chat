@@ -85,7 +85,7 @@ module Twitch
 
       def join(channel)
         @channel = Channel.new(channel)
-        send_data "JOIN ##{@channel.name}"
+        send_data ":#{@username}!#{@username}@#{@username}.tmi.twitch.tv JOIN ##{@channel.name}"
       end
 
       def part
@@ -95,6 +95,7 @@ module Twitch
       end
 
       def send_message(message)
+        @logger.debug("Queing Message!: #{message}")
         @messages_queue << message if @messages_queue.last != message
       end
 
@@ -119,7 +120,7 @@ module Twitch
       def handle_message_queue
         EM.add_timer(message_delay) do
           if message = @messages_queue.pop
-            send_data "PRIVMSG ##{@channel.name} :#{message}"
+            send_data ":#{@username}!#{@username}@#{@username}.tmi.twitch.tv PRIVMSG ##{@channel.name} :#{message}"
             @logger.debug("Sent message: PRIVMSG ##{@channel.name} :#{message}")
           end
 
@@ -133,6 +134,7 @@ module Twitch
       end
 
       def receive_data(data)
+        @logger.debug("Data Recieved: \n#{data}")
         data.split(/\r?\n/).each do |message|
           @logger.debug(message)
 
@@ -164,6 +166,7 @@ module Twitch
       end
 
       def send_data(message)
+        @logger.debug("Data Sent: \n#{message}")
         return false unless connected?
 
         message = message + "\n"
@@ -179,10 +182,12 @@ module Twitch
       end
 
       def authenticate
-        send_data "CAP REQ :twitch.tv/tags twitch.tv/commands twitch.tv/membership"
         send_data "PASS #{password}"
         send_data "NICK #{nickname}"
-        send_data "USER #{username} 8* :#{username}"
+        send_data "USER #{@username} 8* :#{@username}"
+        send_data "CAP REQ :twitch.tv/membership"
+        send_data "CAP REQ :twitch.tv/tags"
+        send_data "CAP REQ :twitch.tv/commands"
       end
     end
   end
