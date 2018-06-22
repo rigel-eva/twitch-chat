@@ -34,7 +34,6 @@ module Twitch
 
       def parse_params(raw_params)
         raw_params = raw_params.strip
-
         params     = []
         if match = raw_params.match(/(?:^:| :)(.*)$/)
           params = match.pre_match.split(" ")
@@ -88,6 +87,7 @@ module Twitch
             :message
           when 'MODE' then :mode
           when 'PING' then :ping
+          when 'USERSTATE' then :userstate
           when 'NOTICE'
             if @params.last == 'Login unsuccessful'
               :login_unsuccessful
