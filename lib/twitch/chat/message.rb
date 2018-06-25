@@ -21,7 +21,9 @@ module Twitch
         @message = parse_message
         @type = parse_type
       end
-
+      def to_s
+        return @message
+      end
       def error?
         !@error.nil?
       end
@@ -78,13 +80,10 @@ module Twitch
       def regular_command?
         !numeric_reply?
       end
-      def to_s
-        return @message
-      end
+
       def parse_type
         case @command
-          when 'PRIVMSG'
-            :message
+          when 'PRIVMSG' then :message
           when 'MODE' then :mode
           when 'PING' then :ping
           when 'USERSTATE' then :userstate
